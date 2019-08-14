@@ -12,37 +12,35 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
         theme: ThemeData.dark(),
-        home: MultiProvider(providers: [
-          ChangeNotifierProvider<MyModel>(builder: (context) => MyModel())
-        ], child: HomePage()));
+        home: MultiProvider(providers: [ChangeNotifierProvider<MyModel>(builder: (context) => MyModel())], child: HomePage()));
   }
 }
 
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Consumer<MyModel>(builder: (context, value, child) {
-      return SafeArea(
-        child: Scaffold(
-          body: Padding(
-            padding: const EdgeInsets.only(top: 20),
-            child: Container(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: <Widget>[ListItemWidget(), DetailedItemWidget()],
-              ),
+    // return Consumer<MyModel>(builder: (context, value, child) {
+    return SafeArea(
+      child: Scaffold(
+        body: Padding(
+          padding: const EdgeInsets.only(top: 20),
+          child: Container(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[ListItemWidget(), DetailedItemWidget()],
             ),
           ),
         ),
-      );
-    });
+      ),
+    );
+    // });
   }
 }
 
 class ListItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final model = Provider.of<MyModel>(context);
+    final model = Provider.of<MyModel>(context, listen: false);
     return Container(
       height: 100.0,
       child: Center(
@@ -50,35 +48,48 @@ class ListItemWidget extends StatelessWidget {
               scrollDirection: Axis.horizontal,
               itemCount: model.items.length,
               itemBuilder: (context, index) {
+                print('ListItemWidget: build index $index');
                 return Padding(
                   padding: const EdgeInsets.only(left: 8, right: 8),
                   child: GestureDetector(
                     onTap: () {
                       model.tap(index);
                     },
-                    child: Container(
-                      decoration: BoxDecoration(
-                          color: RandomColor().randomColor(
-                              colorBrightness: ColorBrightness.light,
-                              colorHue: ColorHue.random,
-                              colorSaturation:
-                                  ColorSaturation.mediumSaturation),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: Colors.white, width: 3)),
-                      width: 100,
-                      child: Center(
-                        child: Text(
-                          '${model.items[index].no}',
-                          style: TextStyle(
-                              fontSize: 50,
-                              color: Color(0XFF414345),
-                              fontWeight: FontWeight.w900),
-                        ),
-                      ),
-                    ),
+                    child: ChangeNotifierProvider.value(value: model.items[index], child: ItemWidget(index: index)),
                   ),
                 );
               })),
+    );
+  }
+}
+
+class ItemWidget extends StatelessWidget {
+  const ItemWidget({
+    Key key,
+    @required this.index,
+  }) : super(key: key);
+
+  final int index; // for debug only - not relevant to the UI or model
+
+  @override
+  Widget build(BuildContext context) {
+    final item = Provider.of<Item>(context);
+    print('ItemWidget: build index $index, no ${item.no}');
+    return Container(
+      decoration: BoxDecoration(
+          color: RandomColor().randomColor(
+              colorBrightness: ColorBrightness.light,
+              colorHue: ColorHue.random,
+              colorSaturation: ColorSaturation.mediumSaturation),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.white, width: 3)),
+      width: 100,
+      child: Center(
+        child: Text(
+          '${item.no}',
+          style: TextStyle(fontSize: 50, color: Color(0XFF414345), fontWeight: FontWeight.w900),
+        ),
+      ),
     );
   }
 }
@@ -173,5 +184,6 @@ class Item with ChangeNotifier {
 
   void tap() {
     _no++;
+    notifyListeners();
   }
 }
