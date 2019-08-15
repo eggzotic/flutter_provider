@@ -19,7 +19,6 @@ class MyApp extends StatelessWidget {
 class HomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // return Consumer<MyModel>(builder: (context, value, child) {
     return SafeArea(
       child: Scaffold(
         body: Padding(
@@ -33,7 +32,6 @@ class HomePage extends StatelessWidget {
         ),
       ),
     );
-    // });
   }
 }
 
@@ -55,41 +53,40 @@ class ListItemWidget extends StatelessWidget {
                     onTap: () {
                       model.tap(index);
                     },
-                    child: ChangeNotifierProvider.value(value: model.items[index], child: ItemWidget(index: index)),
+                    child: ChangeNotifierProvider.value(
+                      value: model.items[index],
+                      // choices for this child are:
+                      // 1. break it out into a separate Widget, or
+                      // 2. Use a Builder
+                      //    Both the above approaches create a new context, beneath the current context, which ensures that Provider.of
+                      //     can find the ChangeNotifierProvider.value in the widget-tree above.
+                      // Option 2 is used here
+                      child: Builder(
+                        builder: (context) {
+                          final item = Provider.of<Item>(context);
+                          print('index $index, item no ${item.no}');
+                          return Container(
+                            decoration: BoxDecoration(
+                                color: RandomColor().randomColor(
+                                    colorBrightness: ColorBrightness.light,
+                                    colorHue: ColorHue.random,
+                                    colorSaturation: ColorSaturation.mediumSaturation),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: Colors.white, width: 3)),
+                            width: 100,
+                            child: Center(
+                              child: Text(
+                                '${item.no}',
+                                style: TextStyle(fontSize: 50, color: Color(0XFF414345), fontWeight: FontWeight.w900),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ),
                 );
               })),
-    );
-  }
-}
-
-class ItemWidget extends StatelessWidget {
-  const ItemWidget({
-    Key key,
-    @required this.index,
-  }) : super(key: key);
-
-  final int index; // for debug only - not relevant to the UI or model
-
-  @override
-  Widget build(BuildContext context) {
-    final item = Provider.of<Item>(context);
-    print('ItemWidget: build index $index, no ${item.no}');
-    return Container(
-      decoration: BoxDecoration(
-          color: RandomColor().randomColor(
-              colorBrightness: ColorBrightness.light,
-              colorHue: ColorHue.random,
-              colorSaturation: ColorSaturation.mediumSaturation),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: Colors.white, width: 3)),
-      width: 100,
-      child: Center(
-        child: Text(
-          '${item.no}',
-          style: TextStyle(fontSize: 50, color: Color(0XFF414345), fontWeight: FontWeight.w900),
-        ),
-      ),
     );
   }
 }
